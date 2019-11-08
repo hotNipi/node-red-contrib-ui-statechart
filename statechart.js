@@ -324,16 +324,16 @@ module.exports = function (RED) {
 								return
 							}
 							var c
-							var line = document.getElementById("scb_"+$scope.unique+"_"+$scope.time);							
-							if(line){
-								c = line.getAttribute('class').replace(' curr','')																																			
-								line.setAttribute("class", c );								
+							var target = document.getElementById("scb_"+$scope.unique+"_"+$scope.time);							
+							if(target){
+								c = target.getAttribute('class').replace(' curr','')																																			
+								target.setAttribute("class", c );								
 							}	
 							$scope.time = t							
-							line = document.getElementById("scb_"+$scope.unique+"_"+$scope.time);														
-							if(line){	
-								c = line.getAttribute('class') + ' curr'												
-								line.setAttribute("class",  c);
+							target = document.getElementById("scb_"+$scope.unique+"_"+$scope.time);														
+							if(target){	
+								c = target.getAttribute('class') + ' curr'												
+								target.setAttribute("class",  c);
 							}	
 						}
 						var updateBars = function (data){							
@@ -349,19 +349,20 @@ module.exports = function (RED) {
 							var c
 							var sci
 							var len = $scope.series.length
+							var target
 							for (let i = 0; i < len; i++) {								
-								var line = document.getElementById("scb_"+$scope.unique+"_"+i);
-								if(line){									
-									sci = line.getAttribute('class').indexOf('off')
+								target = document.getElementById("scb_"+$scope.unique+"_"+i);
+								if(target){									
+									sci = target.getAttribute('class').indexOf('off')
 									if(sci == -1 && $scope.data[i].state == false){										
-										c = line.getAttribute('class') + ' off'												
-										line.setAttribute("class",  c);										
+										c = target.getAttribute('class') + ' off'												
+										target.setAttribute("class",  c);										
 									}
 									else if(sci != -1 && $scope.data[i].state == true){
-										c = line.getAttribute('class').replace(' off','')																																			
-										line.setAttribute("class", c );			
+										c = target.getAttribute('class').replace(' off','')																																			
+										target.setAttribute("class", c );			
 									}
-									line.setAttribute('height',$scope.data[i].height)					
+									target.setAttribute('height',$scope.data[i].height)					
 								}															
 							}
 							updateValues()
