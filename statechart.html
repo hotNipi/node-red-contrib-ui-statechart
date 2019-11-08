@@ -1,0 +1,142 @@
+<!--
+MIT License
+
+Copyright (c) 2019 hotNipi
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the 'Software'), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+<script type='text/javascript'>
+    RED.nodes.registerType('ui_statechart',{
+        category: 'dashboard',
+        color: 'rgb( 63, 173, 181)',
+        defaults: {
+            group: {type: 'ui_group', required:true},
+            order: {value: 0},
+            width: {
+                value: 0,
+                validate: function(v) {
+                    var valid = true
+                    var width = v||0;
+                    var currentGroup = $('#node-input-group').val()|| this.group;
+                    var groupNode = RED.nodes.node(currentGroup);
+                    valid = !groupNode || +width <= +groupNode.width;
+                    $('#node-input-size').toggleClass('input-error',!valid);
+                    return valid;
+                }},
+            height: {value: 0},
+            name: {value: ''},
+            label:{value: ''},
+            colorON: {value: '#009933'},
+            colorOFF: {value: '#999999'},          
+            colorFromTheme:{value:true},
+            stroke:{value:2, required: true},
+            pointcount:{val:8, required: true}
+                    
+        },
+        inputs:1,
+        outputs:0,
+        icon: 'statechart.png',
+        paletteLabel: 'statechart',
+        label: function() {
+            return this.name||'Statechart';
+        },
+        oneditprepare: function() {
+            $('#node-input-size').elementSizer({
+                width: '#node-input-width',
+                height: '#node-input-height',
+                group: '#node-input-group'
+            });
+           
+          
+            if (this.colorON === undefined) {
+                this.colorON = "#009933";
+                setColour("#node-input-colorON", "#009933");
+            }
+            if (this.colorOFF === undefined) {
+                this.colorOFF = "#999999";
+                setColour("#node-input-colorOFF", "#999999");
+            }
+            $('#node-input-colorFromTheme').change(function() {                
+                if (this.checked == true) {                                 
+                    $('#node-input-barcolors').hide(); 
+                }
+                else {                   
+                    $('#node-input-barcolors').show();                   
+                }
+            });
+            var setColour = function(id, value) {
+                $(id).val(value);
+                $(id).css("background-color", value);
+                var rgb = tinycolor(value).toRgb();
+                var level = ((rgb.r*299) + (rgb.g*587) + (rgb.b*114))/1000;
+                var textColor = (level >= 128) ? '#111111' : '#eeeeee';
+                $(id).css("color", textColor);
+            }
+            $(".series-color").on("change", function() {
+                setColour("#"+$(this).attr("id"), $(this).val());
+            });
+          
+        },
+        oneditsave: function (){          
+        }
+    });
+</script>
+<script type='text/x-red' data-template-name='ui_statechart'>
+    <div class='form-row' id='template-row-group'>
+        <label for='node-input-group'><i class='fa fa-table'></i> Group</span></label>
+        <input type='text' id='node-input-group'>
+    </div>
+    <div class='form-row' id='template-row-size'>
+        <label><i class='fa fa-object-group'></i> Size</span></label>
+        <input type='hidden' id='node-input-width'>
+        <input type='hidden' id='node-input-height'>
+        <button class='editor-button' id='node-input-size'></button>
+    </div>      
+</br>    
+    <div class='form-row' id='node-input-linecolor'>
+        <label for='node-input-colorFromTheme' style='padding-top:6px; padding-bottom:6px'><i class='fa fa-paint-brush'></i> Colors</span></label>
+        <input type="checkbox" id="node-input-colorFromTheme" checked style="display:inline-block; width:auto; vertical-align:baseline; margin-right:5px;">Use theme color
+    </div>
+    <div class='form-row' id='node-input-barcolors'>
+        <label for='node-input-barcolors' style='padding-top:6px; padding-bottom:6px'><i class='fa fa-paint-brush'></i> Bar colors</span></label>
+        <span for='node-input-colorON' id='node-input-colorLineSpan' style='margin-left:20px;'>ON</span>
+        <input type='color' class="series-color" id='node-input-colorON' style='width:80px'/>
+        <span for='node-input-colorOFF' id='node-input-colorLineSpan' style='margin-left:20px;'>OFF</span>
+        <input type='color' class="series-color" id='node-input-colorOFF' style='width:80px'/>
+    </div>    
+</br>
+    <div class='form-row'>
+        <label for='node-input-name'><i class='icon-tag'></i> Name</label>
+        <input type='text' id='node-input-name' placeholder='Name'>
+    </div>
+</script>
+<script type='text/x-red' data-help-name='ui_statechart'>
+    <p>Node-RED dashboard widget to visualize value relations together with precalculated states for 24hrs.
+    <p>For example:
+    <p>If some device is managed to work only with low cost electricity using day-ahead prices of electricity. 
+    By using precalculated states the hourly state of device together with the hourly change of price can be visualized.
+    <p>The bar representing current hour is highlighted.   
+    <p>Configurable options:
+    <li>Color of bars</li>    
+   
+ 
+<h3>Input</h3>
+
+ The <code>msg.payload</code> should carry single numeric value. 
+</script>
