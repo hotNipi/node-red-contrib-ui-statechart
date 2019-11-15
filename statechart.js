@@ -72,7 +72,7 @@ module.exports = function (RED) {
 						y="0"
 						width="`+config.scope.shape.width+`" 
 						height="0"
-						transform="scale(1,-1) translate(0,`+((config.scope.shape.height+config.scope.shape.top)*-1)+`)" ng-click="onClick($index)">
+						transform="scale(1,-1) translate(0,`+((config.scope.shape.height+config.scope.shape.top)*-1)+`)">
 					</rect>
 					<text class="sc_txt-{{unique}} small" id=ser_{{unique}}_{{$index}} text-anchor="middle" dominant-baseline="baseline" 
 						ng-attr-x="{{$index * `+(config.scope.shape.step)+`}}px" dx="`+(config.scope.shape.width/2)+`" y=${config.exactheight}>
@@ -473,11 +473,11 @@ module.exports = function (RED) {
 								}
 							}							
 						}						
-						$scope.onClick = function(id){
+						/* $scope.onClick = function(id){
 							if($scope.data === undefined){
 								return
 							}							
-						}														
+						} */														
 						$scope.$watch('msg', function (msg) {
 							if (!msg) {								
 								return;
