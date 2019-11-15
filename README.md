@@ -8,6 +8,8 @@
 ## Description
 Node-RED dashboard widget. Bar chart to visualize numeric values in relation, together with state represented by color.
 
+![node-red-contrib-ui-statechart.png](images/node-red-contrib-ui-statechart.png)
+
 ## Configuration
 ### Series
 
@@ -16,6 +18,7 @@ Configuration input of the series must be filled with `comma separated string`. 
 
 For example: `dog,cat,cow,sheep,goat`
 
+### Series shortcuts
 In addition the series can be automatically generated for 24 hours.  
 By using shortcut `24H` the series generated with format `00,01,02,...,22,23`
 
