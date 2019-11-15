@@ -10,10 +10,15 @@ Node-RED dashboard widget. Bar chart to visualize numeric values in relation, to
 
 ![node-red-contrib-ui-statechart.png](images/node-red-contrib-ui-statechart.png)
 
+State chart is special chart to combine visualization of value relations with state. Relation is between all values in series, not against some minimum, maximum or predefined value. That’s why there aren’t any minimum or maximum values presented.
+
+State is fully under user control. Chart doesn't calculate state for the series.
+
+
 ## Configuration
 ### Series
 
-Configuring the series is required. Series presented as name of the bar. Make them short as they do not rotate or scale.
+Configuring the series is mandatory. Series presented as name of the bar. Make them short as they do not rotate or scale.
 Configuration input of the series must be filled with `comma separated string`. Avoid space unless it is intentional.
 
 For example: `dog,cat,cow,sheep,goat`
@@ -35,7 +40,9 @@ Using valid shortcut adds option to turn on the highlight of bar represents curr
 
 ## Input
 
-`msg.payload` should carry an array of Object(s) where:
+Every bar in chart can be updated with new data independently. So you can send new data only for series where changes are needed. 
+
+`msg.payload` should carry an array of Object(s) where
 required properties are: 
 
    * `series`  - (string) name of series
