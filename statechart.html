@@ -211,12 +211,21 @@ SOFTWARE.
 </script>
 <script type='text/x-red' data-help-name='ui_statechart'>
     <h3>Description</h3>
-    <p>Node-RED dashboard widget. Bar chart to visualize numeric values in relation together with state represented by color.<p>
+    <p>Node-RED dashboard widget. Bar chart to visualize numeric values in relation, together with state represented by color.<p>
 </br>
     <h3>Configuration</h3>
     <h2>Series</h2>
-    <p>Series is mandatory. Series presented as name of the bar. Make them short as they not rotate or scale.
-    Configure series as <code>comma separated string</code>. Avoid space unless it is intentional. 
+    <p>Series is mandatory. Series presented as name of the bar. Make them short as they do not rotate or scale.
+    Configure series as <code>comma separated string</code>. Avoid space unless it is intentional.
+    <code>dog,cat,cow,sheep,goat</code>
+  
+    <p>In addition the series can be automatically generated for 24 hours.  
+    By using shortcut <code>24H</code> the series generated with format <code>00,01,02,...,22,23</code>, 
+    Shortcut <code>24h</code> generates series without leading zeros - <code>0,1,2,...,22,23</code>. 
+    Using shortcut adds option to turn on the highlight of bar represents current hour. 
+    To do so, use syntax <code>24H|L</code>.
+
+
     <h2>Other configurable options</h2>        
     <li>Hide or show values</li>   
     <li>Color of bars</li>
@@ -229,15 +238,16 @@ SOFTWARE.
             <span class="property-type">Array</span>           
         </dt>
         An array of Object(s) where:
-        <dd>(every) item has properties: 
+        <dd> required properties are: 
             <ul>
-                <li><code>series</code>  - (string) name of series</li>
-                <li><code>value</code>  - (number) value</li>
-                <li><code>state</code>  - (boolean) state</li>
+                <li><code>series</code> - (string) name of series</li>
+                <li><code>value</code> - (number) value</li>
+                <li><code>state</code> - (boolean) state</li>
             </ul>            
         </dd>
         <pre>msg.payload = [{series:"A",value:123,state:true},{series:"D",value:32,state:false}]</pre>           
     </dl>
+
    
 
 </script>

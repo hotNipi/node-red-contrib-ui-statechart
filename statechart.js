@@ -35,7 +35,7 @@ module.exports = function (RED) {
 				font-size:`+config.fontoptions.val+`em;								
 			}						
 			.sc_txt-{{unique}}.small{
-				font-size:`+config.fontoptions.series+`em;
+				font-size:`+config.fontoptions.ser+`em;
 			}
 			.scb-{{unique}}{
 				fill: ${config.onColor};
@@ -109,8 +109,8 @@ module.exports = function (RED) {
 			var range = null;
 			var site = null;		
 			var ensureNumber = null;
+			var ensureBoolean = null;
 			var getSiteProperties = null;
-			var getPosition = null;
 			var getCount = null;
 			var calculateShape = null;
 			var updateData = null;
@@ -176,12 +176,8 @@ module.exports = function (RED) {
 						return Math.round(n);
 					}				
 					return n					
-				}	
-				getPosition = function(target,min,max){
-					var p =  {minin:min, maxin:max+0.00001, minout:config.exactheight, maxout:1}
-					return range(target,p,true)
 				}
-				
+
 				getCount = function(){				
 					return config.scope.series.length
 				}
@@ -189,7 +185,7 @@ module.exports = function (RED) {
 				calculateShape = function(){
 					var ret = {}
 					var gap = 2
-					var reservedBottom = (config.fontoptions.series*10) + 5 
+					var reservedBottom = (config.fontoptions.ser*10) + 5 
 					var reservedTop = config.label == '' ? 0 : (config.fontoptions.normal*10) + 16 
 					var gaps = (config.count - 1) * gap
 					var total = config.exactwidth - gaps;
@@ -254,7 +250,21 @@ module.exports = function (RED) {
 					return ret					
 				}
 				
-				var formatSeries = function(ser){					
+				var formatSeries = function(ser){
+					config.scope.timermode = false
+					var sera = ser.split('|')
+					if(sera[0] === '24H'){
+						ser = '00,01,02,03,04,05,06,07,08,09,10,11,12,03,14,15,16,17,18,19,20,21,22,23'
+					}
+					else if(sera[0] === '24h'){
+						ser = '0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23'						
+					}
+					else{
+						ser = sera[0]
+					}
+					if(sera.length > 1 && sera[1] === 'L'){
+						config.scope.timermode = true
+					}					
 					return ser.split(',')
 				}
 				
@@ -269,7 +279,7 @@ module.exports = function (RED) {
 					config.onColor = config.colorON
 					config.offColor = config.colorOFF
 				}
-				config.fontoptions = {normal:1,series:0.6,value:0.5,color:'currentColor'}
+				config.fontoptions = {normal:1,ser:0.65,val:0.5,color:'currentColor'}
 				if(config.textoptions !== 'default'){
 					var opt = parseFloat(config.fontLabel);
 					if(!isNaN(opt)){
@@ -281,7 +291,7 @@ module.exports = function (RED) {
 					}
 					opt = parseFloat(config.fontSeries);
 					if(!isNaN(opt)){
-						config.fontoptions.series = opt;
+						config.fontoptions.ser = opt;
 					}
 					if(config.fontColorFromTheme == false){
 						opt = config.colorText;
@@ -333,13 +343,15 @@ module.exports = function (RED) {
 					initController: function ($scope) {																		
 						$scope.unique = $scope.$eval('$id')
 						$scope.time = undefined
+						$scope.timer = null
 						$scope.data = undefined	
 						$scope.series = undefined
 						$scope.init = function(config){
 							$scope.shape = config.shape
 							$scope.series = config.series
 							$scope.showvalues = config.showvalues	
-							$scope.fontsize = config.fontsize						
+							$scope.fontsize = config.fontsize
+							$scope.timermode = config.timermode						
 							pollInit()
 						}
 						var pollInit = function(){
@@ -347,9 +359,17 @@ module.exports = function (RED) {
 								if (updateSeries() == true) {
 									clearInterval(stateCheck);
 									clearValues()
-									updateBars()												
+									updateBars()
+									if($scope.timermode === true){
+										startTimer()
+									}												
 								}
 							}, 40);
+						}
+						var startTimer = function(){
+							$scope.timer = setInterval(function(){
+								updateTime(new Date().getHours())
+							},1000)
 						}						
 						var updateSeries = function (){							
 							var target
@@ -467,6 +487,12 @@ module.exports = function (RED) {
 							}
 							//updateTime(new Date().getHours())																											
 						});
+						$scope.$on('$destroy', function() {
+							if($scope.timer != null) {
+								clearInterval($scope.timer)
+								$scope.timer = null															
+							}
+						}); 
 					}
 				});
 			}
