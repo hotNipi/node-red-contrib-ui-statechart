@@ -32,10 +32,10 @@ module.exports = function (RED) {
 				fill: ${config.fontoptions.color};											
 			}
 			.sc_txt-{{unique}}.val{
-				font-size:`+config.fontoptions.extrasmall+`em;								
+				font-size:`+config.fontoptions.val+`em;								
 			}						
 			.sc_txt-{{unique}}.small{
-				font-size:`+config.fontoptions.small+`em;
+				font-size:`+config.fontoptions.series+`em;
 			}
 			.scb-{{unique}}{
 				fill: ${config.onColor};
@@ -62,17 +62,22 @@ module.exports = function (RED) {
 					</feComponentTransfer>
 					</filter>
 				</defs>
+				<text ng-if="${config.label != ''}" id=sc_label_{{unique}}>
+					<tspan class="sc_txt-{{unique}}" text-anchor="middle" dominant-baseline="hanging" x=`+config.exactwidth/2+` y="0">
+						`+config.label+`
+					</tspan>
+				</text>	
 				<g id="sc_{{unique}}_{{$index}}" ng-repeat="n in [].constructor(`+config.count+`) track by $index">
 					<rect class="scb-{{unique}}" id="scb_{{unique}}_{{$index}}" ng-attr-x="{{$index * `+config.scope.shape.step+`}}px" 
 						y="0"
 						width="`+config.scope.shape.width+`" 
 						height="0"
-						transform="scale(1,-1) translate(0,`+(config.scope.shape.height*-1)+`)" ng-click="onClick($index)">
+						transform="scale(1,-1) translate(0,`+((config.scope.shape.height+config.scope.shape.top)*-1)+`)" ng-click="onClick($index)">
 					</rect>
 					<text class="sc_txt-{{unique}} small" id=ser_{{unique}}_{{$index}} text-anchor="middle" dominant-baseline="baseline" 
 						ng-attr-x="{{$index * `+(config.scope.shape.step)+`}}px" dx="`+(config.scope.shape.width/2)+`" y=${config.exactheight}>
 					</text>
-					<text class="sc_txt-{{unique}} val" id=v_{{unique}}_{{$index}} text-anchor="middle" dominant-baseline="hanging"
+					<text ng-if="${config.showvalues == true}" class="sc_txt-{{unique}} val" id=v_{{unique}}_{{$index}} text-anchor="middle" dominant-baseline="hanging"
 					ng-attr-x="{{$index * `+(config.scope.shape.step)+`}}px" dx="`+(config.scope.shape.width/2)+`" y=${config.exactheight}> 
 					</text>															
 				</g>
@@ -122,15 +127,29 @@ module.exports = function (RED) {
 						var inputString = input.toString();
 						input =  parseFloat(inputString)
 						if(isNaN(input)){
-							node.warn("msg.payload does not contain numeric value")
+							node.warn("value is not numeric")
 							return config.min
 						}						
 					}
 					if(isNaN(input)){
-						node.warn("msg.payload does not contain numeric value")
+						node.warn("no numeric value")
 						input = config.min;
 					}					
 					return input;
+				}
+				ensureBoolean = function (input) {
+					if (input === undefined) {
+						node.warn("state expected to be some boolean type value")
+						return true;
+					}
+					if (typeof input == "boolean") {
+						return input		
+					}
+					if (typeof input == "number") {
+						return input == 0 ? false : true		
+					}
+					node.warn("state expected to be boolean")			
+					return true;
 				}
 				getSiteProperties = function(){
 					var opts = null;					
@@ -170,13 +189,16 @@ module.exports = function (RED) {
 				calculateShape = function(){
 					var ret = {}
 					var gap = 2
-					var reserved = 10
+					var reservedBottom = (config.fontoptions.series*10) + 5 
+					var reservedTop = config.label == '' ? 0 : (config.fontoptions.normal*10) + 16 
 					var gaps = (config.count - 1) * gap
 					var total = config.exactwidth - gaps;
 					var one = total/config.count;
 					ret.width = one;
 					ret.step = one + gap;
-					ret.height = config.exactheight - reserved
+					ret.height = config.exactheight - reservedBottom - reservedTop
+					ret.top = reservedTop
+					ret.bottom = reservedBottom
 					return ret					
 				}
 				
@@ -188,13 +210,14 @@ module.exports = function (RED) {
 				updateData = function(values){
 					var i
 					var ob
-					if(!values){						
+					var prf = '_|'
+					if(!values){												
 						for (i = 0; i < config.count; i++) {
 							ob = {}
 							ob.value = 0													
 							ob.height = calcualteValue(0)
-							ob.state = true
-							config.data[config.scope.series[i]] = ob
+							ob.state = true						
+							config.data[prf+config.scope.series[i]] = ob
 						}
 					}
 					else{											
@@ -206,14 +229,14 @@ module.exports = function (RED) {
 							if(config.scope.series.indexOf(values[i].series) == -1){
 								node.warn('Series "'+values[i].series+'" does not exist. Check your input!')
 								continue
-							}							
-							config.data[values[i].series].state = values[i].state
-							config.data[values[i].series].value = values[i].value										
+							}														
+							config.data[prf+values[i].series].state = ensureBoolean(values[i].state) 
+							config.data[prf+values[i].series].value = ensureNumber(values[i].value)										
 						}
 						config.min = Number.MAX_VALUE
 						config.max = Number.MIN_VALUE					
 						for (i = 0; i < config.count; i++) {
-							ob = config.data[config.scope.series[i]].value							
+							ob = config.data[prf+config.scope.series[i]].value							
 							if(ob > config.max){
 								config.max = ob
 							}
@@ -223,7 +246,7 @@ module.exports = function (RED) {
 						}
 						var ret = []
 						for (i = 0; i < config.count; i++) {
-							ob = config.data[config.scope.series[i]]
+							ob = config.data[prf+config.scope.series[i]]
 							ob.height = calcualteValue(ob.value)
 							ret.push({value:ob.value,height:ob.height,state:ob.state})																							
 						}		
@@ -239,25 +262,50 @@ module.exports = function (RED) {
 				var site = getSiteProperties();				
 				if(config.width == 0){ config.width = parseInt(group.config.width) || 6}
 				if(config.height == 0) {config.height = parseInt(group.config.height) || 2}
-				config.scope = {}
-				config.width = parseInt(config.width)
-				config.height = parseInt(config.height)
-				config.exactwidth = parseInt(site.sizes.sx * config.width + site.sizes.cx * (config.width-1)) - 12;		
-				config.exactheight = parseInt(site.sizes.sy * config.height + site.sizes.cy * (config.height-1)) - 12;
-				config.series = 'A,B,C,D,E,F,G,H,I,J,K,L,M'
-				config.scope.series = formatSeries(config.series)
-				config.count = getCount()				
-				config.scope.shape = calculateShape()
-				config.data = []				
-				config.fontoptions = {normal:1,small:0.6,extrasmall:0.5,color:'currentColor'}			
+				
 				config.onColor = site.theme['widget-backgroundColor'].value	
 				config.offColor = 'gray'			
 				if(config.colorFromTheme == false){
 					config.onColor = config.colorON
 					config.offColor = config.colorOFF
-				}								
+				}
+				config.fontoptions = {normal:1,series:0.6,value:0.5,color:'currentColor'}
+				if(config.textoptions !== 'default'){
+					var opt = parseFloat(config.fontLabel);
+					if(!isNaN(opt)){
+						config.fontoptions.normal = opt;
+					}
+					opt = parseFloat(config.fontValue);
+					if(!isNaN(opt)){
+						config.fontoptions.val = opt;
+					}
+					opt = parseFloat(config.fontSeries);
+					if(!isNaN(opt)){
+						config.fontoptions.series = opt;
+					}
+					if(config.fontColorFromTheme == false){
+						opt = config.colorText;
+						if(opt != ""){
+							config.fontoptions.color = opt;
+						}
+					}					
+				}
+				
+				config.scope = {}
+				config.data = []
+				config.width = parseInt(config.width)
+				config.height = parseInt(config.height)
+				config.exactwidth = parseInt(site.sizes.sx * config.width + site.sizes.cx * (config.width-1)) - 12;		
+				config.exactheight = parseInt(site.sizes.sy * config.height + site.sizes.cy * (config.height-1)) - 12;				
+				config.scope.series = formatSeries(config.series)
+				config.count = getCount()				
+				config.scope.shape = calculateShape()
+				config.scope.showvalues = config.showvalues	
+				config.scope.fontsize = config.fontoptions.val * 18	
+					
 				config.min = Number.MAX_VALUE
 				config.max = Number.MIN_VALUE
+				
 				updateData()				
 				
 				var html = HTML(config);		
@@ -271,19 +319,17 @@ module.exports = function (RED) {
 					format: html,					
 					templateScope: "local",
 					emitOnlyNewValues: false,
-					forwardInputMessages: true,
-					storeFrontEndInputAsState: true,				
-					
+					forwardInputMessages: false,
+					storeFrontEndInputAsState: false,					
 					beforeEmit: function (msg) {
 						if(msg === undefined){
 							return 
-						}
+						}						
 						if(msg.payload && msg.payload.length > 0){
 							msg.payload = updateData(msg.payload)						
 						}						
 						return { msg: msg };
-					},
-					
+					},										
 					initController: function ($scope) {																		
 						$scope.unique = $scope.$eval('$id')
 						$scope.time = undefined
@@ -291,7 +337,9 @@ module.exports = function (RED) {
 						$scope.series = undefined
 						$scope.init = function(config){
 							$scope.shape = config.shape
-							$scope.series = config.series						
+							$scope.series = config.series
+							$scope.showvalues = config.showvalues	
+							$scope.fontsize = config.fontsize						
 							pollInit()
 						}
 						var pollInit = function(){
@@ -302,8 +350,7 @@ module.exports = function (RED) {
 									updateBars()												
 								}
 							}, 40);
-						}
-						
+						}						
 						var updateSeries = function (){							
 							var target
 							var found = false							
@@ -316,9 +363,7 @@ module.exports = function (RED) {
 								}
 							}
 							return found
-						}
-						
-						
+						}						
 						var updateTime = function (t){
 							if(t == $scope.time){
 								return
@@ -365,7 +410,9 @@ module.exports = function (RED) {
 									target.setAttribute('height',$scope.data[i].height)					
 								}															
 							}
-							updateValues()
+							if($scope.showvalues == true){
+								updateValues()
+							}							
 						}
 						var clearValues = function (){
 							var len = $scope.series.length
@@ -386,10 +433,13 @@ module.exports = function (RED) {
 							for (let i = 0; i < len; i++) {	
 								target = document.getElementById("v_"+$scope.unique+"_"+i);
 								if(target){																		
-									yp = $scope.shape.height - $scope.data[i].height - 10 	
-									if(yp <= 0){
-										yp = $scope.shape.height - $scope.data[i].height + 1
-									}									
+									yp = $scope.shape.height + $scope.shape.top - $scope.data[i].height - $scope.fontsize  
+
+									if(yp < $scope.shape.top){
+										yp += $scope.fontsize + 2
+										
+										
+									}	 							
 									d = $scope.data[i].value
 									tl = Math.ceil(Math.log(d + 1) / Math.LN10);							
 									if(tl > 3){
@@ -407,8 +457,7 @@ module.exports = function (RED) {
 							if($scope.data === undefined){
 								return
 							}							
-						}
-														
+						}														
 						$scope.$watch('msg', function (msg) {
 							if (!msg) {								
 								return;
@@ -416,8 +465,7 @@ module.exports = function (RED) {
 							if(msg.payload){								
 								updateBars(msg.payload)
 							}
-							//updateTime(new Date().getHours())				
-																										
+							//updateTime(new Date().getHours())																											
 						});
 					}
 				});

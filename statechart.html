@@ -42,12 +42,17 @@ SOFTWARE.
             height: {value: 0},
             name: {value: ''},
             label:{value: ''},
+            series:{value: '',required: true, validate:function(v) {if(v === ''){return false} return true}},
+            showvalues:{value:false},
             colorON: {value: '#009933'},
             colorOFF: {value: '#999999'},          
             colorFromTheme:{value:true},
-            stroke:{value:2, required: true},
-            pointcount:{val:8, required: true}
-                    
+            fontColorFromTheme:{value:true},
+            textoptions:{value:'default'},
+            colorText: {value:'#eeeeee'},
+            fontLabel:{value:''},
+            fontValue:{value:''},
+            fontSeries:{value:''}
         },
         inputs:1,
         outputs:0,
@@ -63,7 +68,13 @@ SOFTWARE.
                 group: '#node-input-group'
             });
            
-          
+            if (this.showvalues === undefined) {
+                $("#node-input-showvalues").prop('checked', false);
+            } 
+            if (this.series === undefined) {
+                this.series = '';
+                $('#node-input-series').val('');
+            }
             if (this.colorON === undefined) {
                 this.colorON = "#009933";
                 setColour("#node-input-colorON", "#009933");
@@ -72,12 +83,44 @@ SOFTWARE.
                 this.colorOFF = "#999999";
                 setColour("#node-input-colorOFF", "#999999");
             }
+            if (this.textoptions === undefined) {
+                this.textoptions = 'default';
+                this.colorText = '#eeeeee';
+                $('#node-input-textoptions').val('default');
+                $('#node-input-fontcolor').hide();
+            }
             $('#node-input-colorFromTheme').change(function() {                
                 if (this.checked == true) {                                 
                     $('#node-input-barcolors').hide(); 
                 }
                 else {                   
                     $('#node-input-barcolors').show();                   
+                }
+            });
+            $('#node-input-fontColorFromTheme').change(function() {                
+                if (this.checked == true) {                                 
+                    $('#node-input-colorText').hide(); 
+                }
+                else {                   
+                    $('#node-input-colorText').show();                   
+                }
+            });
+            $('#node-input-textoptions').change(function() {
+                if ($(this).val() === 'default') {
+                    $('#node-input-fontsizes').hide();
+                    $('#node-input-fontcolor').hide();                   
+                }
+                else {
+                    $('#node-input-fontsizes').show();   
+                    $('#node-input-fontcolor').show(); 
+                    if( $('#node-input-fontColorFromTheme').is(':checked')){                       
+                        $('#node-input-colorText').hide();
+                        $('#node-input-colorTextSpan').hide();
+                    }
+                    else{                        
+                        $('#node-input-colorText').show();
+                        $('#node-input-colorTextSpan').show();
+                    }
                 }
             });
             var setColour = function(id, value) {
@@ -108,18 +151,58 @@ SOFTWARE.
         <input type='hidden' id='node-input-height'>
         <button class='editor-button' id='node-input-size'></button>
     </div>      
-</br>    
+</br>
+    <div class='form-row' id='node-input-el-label'>
+        <label for='node-input-label'><i class='icon-tag'></i> Label</label>
+        <input type='text' id='node-input-label' placeholder='State chart'>
+    </div>
+    <div class='form-row' id='node-input-el-series'>
+        <label for='node-input-series'><i class='fa fa-cog'></i> Series</label>
+        <input type='text' id='node-input-series' placeholder='A,B,C,D'>
+    </div>
+    <div class='form-row' id='node-input-valuepresent'>
+        <label for='node-input-showvalues'><i class='fa fa-cog'></i> Values</span></label>
+        <input type="checkbox" id="node-input-showvalues" checked style="display:inline-block; width:auto; vertical-align:baseline; margin-right:5px;">Show values       
+    </div>
+</br>
+        
     <div class='form-row' id='node-input-linecolor'>
-        <label for='node-input-colorFromTheme' style='padding-top:6px; padding-bottom:6px'><i class='fa fa-paint-brush'></i> Colors</span></label>
+        <label for='node-input-colorFromTheme' style='padding-top:6px; padding-bottom:6px'><i class='fa fa-paint-brush'></i> Bar Colors</span></label>
         <input type="checkbox" id="node-input-colorFromTheme" checked style="display:inline-block; width:auto; vertical-align:baseline; margin-right:5px;">Use theme color
     </div>
     <div class='form-row' id='node-input-barcolors'>
-        <label for='node-input-barcolors' style='padding-top:6px; padding-bottom:6px'><i class='fa fa-paint-brush'></i> Bar colors</span></label>
-        <span for='node-input-colorON' id='node-input-colorLineSpan' style='margin-left:20px;'>ON</span>
-        <input type='color' class="series-color" id='node-input-colorON' style='width:80px'/>
-        <span for='node-input-colorOFF' id='node-input-colorLineSpan' style='margin-left:20px;'>OFF</span>
-        <input type='color' class="series-color" id='node-input-colorOFF' style='width:80px'/>
-    </div>    
+            <label for='node-input-barcolors' style='padding-top:6px; padding-bottom:6px'><i class='fa fa-paint-brush'></i> State colors</span></label>
+            <span for='node-input-colorON' id='node-input-colorLineSpan' style='margin-left:20px;'>true</span>
+            <input type='color' class="series-color" id='node-input-colorON' style='width:80px'/>
+            <span for='node-input-colorOFF' id='node-input-colorLineSpan' style='margin-left:20px;'>false</span>
+            <input type='color' class="series-color" id='node-input-colorOFF' style='width:80px'/>
+        </div>    
+</br>        
+    <div class='form-row'>
+        <label for='node-input-textoptions'><i class='fa fa-font'></i> Text options</label>
+        <select id='node-input-textoptions' style='width:200px !important'>
+            <option value='default'>default</option>
+            <option value='custom'>custom</option>      
+        </select>
+    </div>
+    <div class='form-row' id='node-input-fontsizes'>
+        <label for='node-input-font-sizes'><i class='fa fa-text-height'></i> Font sizes</label>
+        <span for='node-input-fontLabel'>Label</span>
+        <input type='text' id='node-input-fontLabel' style='width:50px' dir='' placeholder='1'>
+        <span for='node-input-fontSeries' style='margin-left:20px;'>Series</span>
+        <input type='text' id='node-input-fontSeries' style='width:50px' dir='' placeholder='0.65'>
+        <span for='node-input-fontValue' style='margin-left:20px;'>Value</span>
+        <input type='text' id='node-input-fontValue' style='width:50px' dir='' placeholder='0.5' >     
+    </div>
+
+    <div class='form-row' id='node-input-fontcolor'>
+        <label for='node-input-colorText' style='padding-top:6px; padding-bottom:6px'><i class='fa fa-paint-brush'></i> Font color</span></label>
+        <input type="checkbox" id="node-input-fontColorFromTheme" checked style="display:inline-block; width:auto; vertical-align:baseline; margin-right:5px;">Use theme color
+        <span for='node-input-colorText' id='node-input-colorTextSpan' style='margin-left:20px;'>Custom color</span>
+        <input type='color' class="series-color" id='node-input-colorText' style='width:80px'/>
+    </div>
+
+   
 </br>
     <div class='form-row'>
         <label for='node-input-name'><i class='icon-tag'></i> Name</label>
@@ -127,16 +210,34 @@ SOFTWARE.
     </div>
 </script>
 <script type='text/x-red' data-help-name='ui_statechart'>
-    <p>Node-RED dashboard widget to visualize value relations together with precalculated states for 24hrs.
-    <p>For example:
-    <p>If some device is managed to work only with low cost electricity using day-ahead prices of electricity. 
-    By using precalculated states the hourly state of device together with the hourly change of price can be visualized.
-    <p>The bar representing current hour is highlighted.   
-    <p>Configurable options:
-    <li>Color of bars</li>    
+    <h3>Description</h3>
+    <p>Node-RED dashboard widget. Bar chart to visualize numeric values in relation together with state represented by color.<p>
+</br>
+    <h3>Configuration</h3>
+    <h2>Series</h2>
+    <p>Series is mandatory. Series presented as name of the bar. Make them short as they not rotate or scale.
+    Configure series as <code>comma separated string</code>. Avoid space unless it is intentional. 
+    <h2>Other configurable options</h2>        
+    <li>Hide or show values</li>   
+    <li>Color of bars</li>
+    <li>Font sizes</li>
+    <li>Color of texts</li>  
+</br>
+    <h3>Input</h3>
+    <dl class="message-properties">
+        <dt>payload
+            <span class="property-type">Array</span>           
+        </dt>
+        An array of Object(s) where:
+        <dd>(every) item has properties: 
+            <ul>
+                <li><code>series</code>  - (string) name of series</li>
+                <li><code>value</code>  - (number) value</li>
+                <li><code>state</code>  - (boolean) state</li>
+            </ul>            
+        </dd>
+        <pre>msg.payload = [{series:"A",value:123,state:true},{series:"D",value:32,state:false}]</pre>           
+    </dl>
    
- 
-<h3>Input</h3>
 
- The <code>msg.payload</code> should carry single numeric value. 
 </script>
