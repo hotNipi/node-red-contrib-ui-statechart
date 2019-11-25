@@ -51,6 +51,7 @@ required properties are:
 
 `msg.payload = [{series:"A",value:123,state:true},{series:"D",value:32,state:false}]`
 
+`msg.title` (string) title of chart can be changed by sending new value `msg.title = TILE OF CHART`
 ## Appendix
 
 This widget is created for dedicated use. This restricts adding external dependencies and the widget must be held lightweight and responsive. Adding new options is highly possible if it makes sense and can be done with full respect of above.  

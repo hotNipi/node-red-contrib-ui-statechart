@@ -62,8 +62,8 @@ module.exports = function (RED) {
 					</feComponentTransfer>
 					</filter>
 				</defs>
-				<text ng-if="${config.label != ''}" id=sc_label_{{unique}}>
-					<tspan class="sc_txt-{{unique}}" text-anchor="middle" dominant-baseline="hanging" x=`+config.exactwidth/2+` y="0">
+				<text ng-if="${config.label != ''}">
+					<tspan id="sc_label_{{unique}}" class="sc_txt-{{unique}}" text-anchor="middle" dominant-baseline="hanging" x=`+config.exactwidth/2+` y="2">
 						`+config.label+`
 					</tspan>
 				</text>	
@@ -472,7 +472,15 @@ module.exports = function (RED) {
 									$(target).text(d)
 								}
 							}							
-						}						
+						}
+						var updateTitle = function(title){
+							console.log("updatetitle "+title)
+							var target = document.getElementById("sc_label_"+$scope.unique);
+							if(target){
+								$(target).text(title)
+							}
+						}
+
 						/* $scope.onClick = function(id){
 							if($scope.data === undefined){
 								return
@@ -484,6 +492,9 @@ module.exports = function (RED) {
 							}
 							if(msg.payload){								
 								updateBars(msg.payload)
+							}
+							if(msg.title){
+								updateTitle(msg.title)
 							}
 							//updateTime(new Date().getHours())																											
 						});
