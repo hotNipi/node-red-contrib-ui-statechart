@@ -312,6 +312,11 @@ module.exports = function (RED) {
 				config.scope.shape = calculateShape()
 				config.scope.showvalues = config.showvalues	
 				config.scope.fontsize = config.fontoptions.val * 18	
+
+				config.scope.padding = {
+					hor:'6px',
+					vert:(site.sizes.sy/16)+'px'
+				}
 					
 				config.min = Number.MAX_VALUE
 				config.max = Number.MIN_VALUE
@@ -346,12 +351,14 @@ module.exports = function (RED) {
 						$scope.timer = null
 						$scope.data = undefined	
 						$scope.series = undefined
+						$scope.padding = null
 						$scope.init = function(config){
 							$scope.shape = config.shape
 							$scope.series = config.series
 							$scope.showvalues = config.showvalues	
 							$scope.fontsize = config.fontsize
-							$scope.timermode = config.timermode						
+							$scope.timermode = config.timermode
+							$scope.padding = config.padding						
 							pollInit()
 						}
 						var pollInit = function(){
@@ -370,13 +377,26 @@ module.exports = function (RED) {
 							$scope.timer = setInterval(function(){
 								updateTime(new Date().getHours())
 							},1000)
-						}						
+						}
+						
+						var updateContainerStyle = function(){
+							var el = document.getElementById("statechart_svg_"+$scope.unique)							
+							el = el.parentElement					
+							if(el && el.classList.contains('nr-dashboard-template')){
+								if($(el).css('paddingLeft') == '0px'){
+									el.style.paddingLeft = el.style.paddingRight = $scope.padding.hor
+									el.style.paddingTop = el.style.paddingBottom = $scope.padding.vert
+								}
+							}							
+						}
+						
 						var updateSeries = function (){							
 							var target
 							var found = false							
 							for (let i = 0; i < $scope.series.length; i++) {
 								target = document.getElementById("ser_"+$scope.unique+"_"+i);								
 								if(target){
+									updateContainerStyle()
 									$(target).text($scope.series[i])
 									$scope.inited = true
 									found = true
