@@ -481,7 +481,12 @@ module.exports = function (RED) {
 										
 									}	 							
 									d = $scope.data[i].value
-									tl = Math.ceil(Math.log(d + 1) / Math.LN10);							
+									if(d === -1){
+										tl = 3
+									}
+									else{
+										tl = Math.ceil(Math.log(d + 1) / Math.LN10);
+									}																
 									if(tl > 3){
 										d = parseFloat(d/1000).toFixed(1)+'k'
 									}
