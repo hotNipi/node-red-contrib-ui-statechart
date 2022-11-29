@@ -10,9 +10,8 @@ Node-RED dashboard widget. Bar chart to visualize numeric values in relation, to
 
 ![Node-RED dashboard widget node-red-contrib-ui-statechart](images/node-red-contrib-ui-statechart.png)
 
-State chart is special chart to combine visualization of value relations with state. Relation is between all values in series, not against some minimum, maximum or predefined value. That’s why there aren’t any minimum or maximum values presented.
-
-State is fully under user control. Chart doesn't calculate state for the series.
+State chart is special chart to combine visualization of value relations with state. 
+The state is fully under user control. Chart doesn't calculate state for the series.
 
 
 ## Configuration
