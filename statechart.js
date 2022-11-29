@@ -37,30 +37,23 @@ module.exports = function (RED) {
 			.sc_txt-{{unique}}.small{
 				font-size:`+config.fontoptions.ser+`em;
 			}
-			.scb-{{unique}}{
-				
+			.scb-{{unique}}{				
 				outline: none !important;
 			}	
 			.scb-{{unique}}.curr{
-				filter: url(#brigth-{{unique}})
-			}
-			.scb-{{unique}}.off{
-						
-			}		
+				opacity: 1;
+    			animation: scb-fadeinout 2s infinite linear;
+			}			
+			@keyframes scb-fadeinout {
+				0%,100% { opacity: 0.4; }
+				50% { opacity: 1; }
+			  }		
 		</style>`
 			
 		var layout = String.raw`
 					
 			<svg preserveAspectRatio="xMidYMid meet" id="statechart_svg_{{unique}}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" ng-init='init(`+scopeconf+`)'>
-				<defs>
-				<filter id="brigth-{{unique}}">
-					<feComponentTransfer>
-					<feFuncR type="linear" slope="3"/>
-					<feFuncG type="linear" slope="3"/>
-					<feFuncB type="linear" slope="3"/>
-					</feComponentTransfer>
-					</filter>
-				</defs>
+				
 				<text ng-if="${config.label != ''}">
 					<tspan id="sc_label_{{unique}}" class="sc_txt-{{unique}}" text-anchor="middle" dominant-baseline="hanging" x=`+config.exactwidth/2+` y="2">
 						`+config.label+`
@@ -487,21 +480,14 @@ module.exports = function (RED) {
 									if($scope.data[i].color){
 										target.setAttribute("fill",  $scope.data[i].color);
 									}
-									else{
-										sci = target.getAttribute('class').indexOf('off')
-										if(sci == -1 && $scope.data[i].state == false){										
-											//c = target.getAttribute('class') + ' off'												
-											//target.setAttribute("class",  c);
+									else{										
+										if($scope.data[i].state == false){
 											target.setAttribute("fill",  $scope.colors.off);										
 										}
-										else if(sci != -1 && $scope.data[i].state == true){
-											//c = target.getAttribute('class').replace(' off','')																																			
-											//target.setAttribute("class", c );	
+										else {
 											target.setAttribute("fill",  $scope.colors.on);		
 										}
-									}
-									
-									
+									}									
 									target.setAttribute('height',$scope.data[i].height)					
 								}															
 							}
