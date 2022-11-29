@@ -31,8 +31,10 @@ Shortcut `24h` generates series without leading zeros - `0,1,2,...,22,23`
 
 Using valid shortcut adds option to turn on the highlight of bar represents current hour. To do so, use syntax `24H|L`
 
+### Limits
+By default the graph will be autoscaling so that it will adjust the y-axis to the range of the data. You can change this behavior by explicitly setting the limits. To do this uncheck `Use dataset min & max` checkbox and specify custom limits. One or both limits can be specified. If only one limit is specified, the other will still autoscale. The y-axis will then range at least from `Min` to `Max`. Autoscaling will still permit those boundaries to be stretched if the dataset exceeds the specified limits.
 
-### Other configurable options     
+### Other configurable options   
 * Hide or show values
 * Color of bars
 * Font sizes

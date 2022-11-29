@@ -261,6 +261,14 @@ SOFTWARE.
     Using shortcut adds option to turn on the highlight of bar represents current hour. 
     To do so, use syntax <code>24H|L</code>.
 
+    <h2>Limits</h2>
+    <p>By default the graph will be autoscaling so that it will adjust the y-axis to the range of the data.
+    You can change this behavior by explicitly setting the limits. 
+    To do this uncheck <code>Use dataset min & max</code> checkbox and specify custom limits. 
+    One or both limits can be specified. If only one limit is specified, the other will still autoscale.
+    The y-axis will then range at least from <code>Min</code> to <code>Max</code>. 
+    Autoscaling will still permit those boundaries to be stretched if the dataset exceeds the specified limits.
+
 
     <h2>Other configurable options</h2>        
     <li>Hide or show values</li>   
