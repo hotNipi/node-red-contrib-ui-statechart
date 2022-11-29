@@ -38,15 +38,14 @@ module.exports = function (RED) {
 				font-size:`+config.fontoptions.ser+`em;
 			}
 			.scb-{{unique}}{
-				fill: ${config.onColor};
-				focusable="false";
+				
 				outline: none !important;
 			}	
 			.scb-{{unique}}.curr{
 				filter: url(#brigth-{{unique}})
 			}
 			.scb-{{unique}}.off{
-				fill: ${config.offColor};				
+						
 			}		
 		</style>`
 			
@@ -223,7 +222,8 @@ module.exports = function (RED) {
 							config.data[prf+config.scope.series[i]] = ob
 						}
 					}
-					else{											
+					else{	
+						//console.log(values)										
 						var len = values.length
 						if(len > config.count){
 							len = config.count
@@ -234,7 +234,13 @@ module.exports = function (RED) {
 								continue
 							}														
 							config.data[prf+values[i].series].state = ensureBoolean(values[i].state) 
-							config.data[prf+values[i].series].value = ensureNumber(values[i].value)										
+							config.data[prf+values[i].series].value = ensureNumber(values[i].value)	
+							if(values[i].color){
+								config.data[prf+values[i].series].color = values[i].color
+							}
+							else{
+								config.data[prf+values[i].series].color = config.data[prf+values[i].series].state == true ? config.onColor:config.offColor;
+							}									
 						}
 						config.min = Number.MAX_VALUE
 						config.max = Number.MIN_VALUE					
@@ -259,10 +265,17 @@ module.exports = function (RED) {
 							}
 						}
 						var ret = []
+						var rob
+
 						for (i = 0; i < config.count; i++) {
 							ob = config.data[prf+config.scope.series[i]]
 							ob.height = calcualteValue(ob.value)
-							ret.push({value:ob.value,height:ob.height,state:ob.state})																							
+							rob = {value:ob.value,height:ob.height,state:ob.state}
+							if(ob.color){
+								rob.color = ob.color
+							}
+							ret.push(rob)
+																														
 						}		
 					}
 					return ret					
@@ -329,7 +342,9 @@ module.exports = function (RED) {
 				config.count = getCount()				
 				config.scope.shape = calculateShape()
 				config.scope.showvalues = config.showvalues	
-				config.scope.fontsize = config.fontoptions.val * 18	
+				config.scope.fontsize = config.fontoptions.val * 18
+				config.scope.onColor = config.onColor	
+				config.scope.offColor = config.offColor	
 
 
 				config.limits = {min:'',max:''}
@@ -379,13 +394,15 @@ module.exports = function (RED) {
 						$scope.data = undefined	
 						$scope.series = undefined
 						$scope.padding = null
+						$scope.colors = null
 						$scope.init = function(config){
 							$scope.shape = config.shape
 							$scope.series = config.series
 							$scope.showvalues = config.showvalues	
 							$scope.fontsize = config.fontsize
 							$scope.timermode = config.timermode
-							$scope.padding = config.padding						
+							$scope.padding = config.padding
+							$scope.colors = {on:config.onColor,off:config.offColor}						
 							pollInit()
 						}
 						var pollInit = function(){
@@ -467,15 +484,24 @@ module.exports = function (RED) {
 							for (let i = 0; i < len; i++) {								
 								target = document.getElementById("scb_"+$scope.unique+"_"+i);
 								if(target){									
-									sci = target.getAttribute('class').indexOf('off')
-									if(sci == -1 && $scope.data[i].state == false){										
-										c = target.getAttribute('class') + ' off'												
-										target.setAttribute("class",  c);										
+									if($scope.data[i].color){
+										target.setAttribute("fill",  $scope.data[i].color);
 									}
-									else if(sci != -1 && $scope.data[i].state == true){
-										c = target.getAttribute('class').replace(' off','')																																			
-										target.setAttribute("class", c );			
+									else{
+										sci = target.getAttribute('class').indexOf('off')
+										if(sci == -1 && $scope.data[i].state == false){										
+											//c = target.getAttribute('class') + ' off'												
+											//target.setAttribute("class",  c);
+											target.setAttribute("fill",  $scope.colors.off);										
+										}
+										else if(sci != -1 && $scope.data[i].state == true){
+											//c = target.getAttribute('class').replace(' off','')																																			
+											//target.setAttribute("class", c );	
+											target.setAttribute("fill",  $scope.colors.on);		
+										}
 									}
+									
+									
 									target.setAttribute('height',$scope.data[i].height)					
 								}															
 							}
