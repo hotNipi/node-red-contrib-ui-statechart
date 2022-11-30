@@ -50,7 +50,7 @@ required properties are:
    * `value`  - (number) value
    * `state`  - (boolean) state
 Optional property
-   * color - (string) color of bar
+   * `color` - (string) color of bar
 
 color property sets the color for the bar. This overrides the state and the colors defined in config. Acceptet definition of color is named HTML color, RGB or hex (e.g red , RGB(100,50,64), #00CC45)
 
