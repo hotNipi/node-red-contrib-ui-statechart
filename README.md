@@ -49,6 +49,7 @@ required properties are:
    * `series`  - (string) name of series
    * `value`  - (number) value
    * `state`  - (boolean) state
+
 Optional property
    * `color` - (string) color of bar
 
