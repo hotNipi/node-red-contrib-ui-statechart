@@ -49,8 +49,12 @@ required properties are:
    * `series`  - (string) name of series
    * `value`  - (number) value
    * `state`  - (boolean) state
+Optional property
+   * color - (string) color of bar
 
-`msg.payload = [{series:"A",value:123,state:true},{series:"D",value:32,state:false}]`
+The color property sets the color for the bar. This overrides the state and the colors defined in config. Acceptet definition of color is named HTML color, RGB or hex (e.g red , RGB(100,50,64), #00CC45)
+
+`msg.payload = [{series:"A",value:123,state:true, color:"#00CC45"},{series:"D",value:32,state:false}]`
 
 `msg.title` (string) title of chart can be changed by sending new value `msg.title = TILE OF CHART`
 ## Appendix
