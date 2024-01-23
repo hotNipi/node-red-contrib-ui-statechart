@@ -10,9 +10,8 @@ Node-RED dashboard widget. Bar chart to visualize numeric values in relation, to
 
 ![Node-RED dashboard widget node-red-contrib-ui-statechart](images/node-red-contrib-ui-statechart.png)
 
-State chart is special chart to combine visualization of value relations with state. Relation is between all values in series, not against some minimum, maximum or predefined value. That’s why there aren’t any minimum or maximum values presented.
-
-State is fully under user control. Chart doesn't calculate state for the series.
+State chart is special chart to combine visualization of value relations with state. 
+The state is fully under user control. Chart doesn't calculate state for the series.
 
 
 ## Configuration
@@ -31,8 +30,10 @@ Shortcut `24h` generates series without leading zeros - `0,1,2,...,22,23`
 
 Using valid shortcut adds option to turn on the highlight of bar represents current hour. To do so, use syntax `24H|L`
 
+### Limits
+By default the graph will be autoscaling so that it will adjust the y-axis to the range of the data. You can change this behavior by explicitly setting the limits. To do this uncheck `Use dataset min & max` checkbox and specify custom limits. One or both limits can be specified. If only one limit is specified, the other will still auto-scale. The y-axis will then range at least from `Min` to `Max`. Auto-scaling will still permit those boundaries to be stretched if the dataset exceeds the specified limits.
 
-### Other configurable options     
+### Other configurable options   
 * Hide or show values
 * Color of bars
 * Font sizes
@@ -49,7 +50,12 @@ required properties are:
    * `value`  - (number) value
    * `state`  - (boolean) state
 
-`msg.payload = [{series:"A",value:123,state:true},{series:"D",value:32,state:false}]`
+Optional property
+   * `color` - (string) color of bar
+
+color property sets the color for the bar. This overrides the state and the colors defined in config. Accepted definition of color is named HTML color, RGB or hex (e.g red , RGB(100,50,64), #00CC45)
+
+`msg.payload = [{series:"A",value:123,state:true, color:"#00CC45"},{series:"D",value:32,state:false}]`
 
 `msg.title` (string) title of chart can be changed by sending new value `msg.title = TILE OF CHART`
 ## Appendix

@@ -37,34 +37,32 @@ module.exports = function (RED) {
 			.sc_txt-{{unique}}.small{
 				font-size:`+config.fontoptions.ser+`em;
 			}
-			.scb-{{unique}}{
-				fill: ${config.onColor};
-				focusable="false";
+			.scb-{{unique}}{				
 				outline: none !important;
 			}	
 			.scb-{{unique}}.curr{
-				filter: url(#brigth-{{unique}})
-			}
-			.scb-{{unique}}.off{
-				fill: ${config.offColor};				
-			}		
+				opacity: 1;
+    			animation: scb-fadeinout 2s infinite linear;
+			}			
+			@keyframes scb-fadeinout {
+				0%,100% { opacity: 0.4; }
+				50% { opacity: 1; }
+			  }		
 		</style>`
 			
 		var layout = String.raw`
 					
 			<svg preserveAspectRatio="xMidYMid meet" id="statechart_svg_{{unique}}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" ng-init='init(`+scopeconf+`)'>
-				<defs>
-				<filter id="brigth-{{unique}}">
-					<feComponentTransfer>
-					<feFuncR type="linear" slope="3"/>
-					<feFuncG type="linear" slope="3"/>
-					<feFuncB type="linear" slope="3"/>
-					</feComponentTransfer>
-					</filter>
-				</defs>
+				
 				<text ng-if="${config.label != ''}">
 					<tspan id="sc_label_{{unique}}" class="sc_txt-{{unique}}" text-anchor="middle" dominant-baseline="hanging" x=`+config.exactwidth/2+` y="2">
 						`+config.label+`
+					</tspan>
+					<tspan id="sc_min_{{unique}}" class="sc_txt-{{unique}} small" text-anchor="start" dominant-baseline="hanging" x="0" y="2">
+						
+					</tspan>
+					<tspan id="sc_max_{{unique}}" class="sc_txt-{{unique}} small" text-anchor="end" dominant-baseline="hanging" x=`+config.exactwidth+` y="2">
+						
 					</tspan>
 				</text>	
 				<g id="sc_{{unique}}_{{$index}}" ng-repeat="n in [].constructor(`+config.count+`) track by $index">
@@ -203,6 +201,7 @@ module.exports = function (RED) {
 				
 				calcualteValue = function(val){
 					var p =  {minin:config.min, maxin:config.max+0.00001, minout:3, maxout: config.scope.shape.height}
+				
 					return range(val,p,true)
 				}
 			
@@ -219,7 +218,8 @@ module.exports = function (RED) {
 							config.data[prf+config.scope.series[i]] = ob
 						}
 					}
-					else{											
+					else{	
+						//console.log(values)										
 						var len = values.length
 						if(len > config.count){
 							len = config.count
@@ -230,7 +230,13 @@ module.exports = function (RED) {
 								continue
 							}														
 							config.data[prf+values[i].series].state = ensureBoolean(values[i].state) 
-							config.data[prf+values[i].series].value = ensureNumber(values[i].value)										
+							config.data[prf+values[i].series].value = ensureNumber(values[i].value)	
+							if(values[i].color){
+								config.data[prf+values[i].series].color = values[i].color
+							}
+							else{
+								config.data[prf+values[i].series].color = config.data[prf+values[i].series].state == true ? config.onColor:config.offColor;
+							}									
 						}
 						config.min = Number.MAX_VALUE
 						config.max = Number.MIN_VALUE					
@@ -243,11 +249,29 @@ module.exports = function (RED) {
 								config.min = ob
 							}
 						}
+						if(config.limits.max !== ''){
+							if(config.max < config.limits.max){
+								config.max = config.limits.max
+							}
+						}
+					
+						if(config.limits.min !== ''){							
+							if(config.min > config.limits.min){
+								config.min = config.limits.min
+							}
+						}
 						var ret = []
+						var rob
+
 						for (i = 0; i < config.count; i++) {
 							ob = config.data[prf+config.scope.series[i]]
 							ob.height = calcualteValue(ob.value)
-							ret.push({value:ob.value,height:ob.height,state:ob.state})																							
+							rob = {value:ob.value,height:ob.height,state:ob.state}
+							if(ob.color){
+								rob.color = ob.color
+							}
+							ret.push(rob)
+																														
 						}		
 					}
 					return ret					
@@ -274,7 +298,7 @@ module.exports = function (RED) {
 				var group = RED.nodes.getNode(config.group);
 				var site = getSiteProperties();				
 				if(config.width == 0){ config.width = parseInt(group.config.width) || 6}
-				if(config.height == 0) {config.height = parseInt(group.config.height) || 2}
+				if(config.height == 0) {config.height = parseInt(group.config.height) || 2}				
 				
 				config.onColor = site.theme['widget-backgroundColor'].value	
 				config.offColor = 'gray'			
@@ -314,7 +338,15 @@ module.exports = function (RED) {
 				config.count = getCount()				
 				config.scope.shape = calculateShape()
 				config.scope.showvalues = config.showvalues	
-				config.scope.fontsize = config.fontoptions.val * 18	
+				config.scope.fontsize = config.fontoptions.val * 18
+				config.scope.onColor = config.onColor	
+				config.scope.offColor = config.offColor	
+
+
+				config.limits = {min:'',max:''}
+				if(!config.limitChoice){
+					config.limits = {min:parseFloat(config.minValue),max:parseFloat(config.maxValue)}
+				}
 
 				config.scope.padding = {
 					hor:'6px',
@@ -323,9 +355,11 @@ module.exports = function (RED) {
 					
 				config.min = Number.MAX_VALUE
 				config.max = Number.MIN_VALUE
+
+				
 				
 				updateData()				
-				
+				//console.log(config)
 				var html = HTML(config);		
 				
 				done = ui.addWidget({
@@ -344,7 +378,8 @@ module.exports = function (RED) {
 							return 
 						}						
 						if(msg.payload && msg.payload.length > 0){
-							msg.payload = updateData(msg.payload)						
+							msg.payload = updateData(msg.payload)							
+							msg.limits = {min:config.min,max:config.max}												
 						}						
 						return { msg: msg };
 					},										
@@ -355,13 +390,15 @@ module.exports = function (RED) {
 						$scope.data = undefined	
 						$scope.series = undefined
 						$scope.padding = null
+						$scope.colors = null
 						$scope.init = function(config){
 							$scope.shape = config.shape
 							$scope.series = config.series
 							$scope.showvalues = config.showvalues	
 							$scope.fontsize = config.fontsize
 							$scope.timermode = config.timermode
-							$scope.padding = config.padding						
+							$scope.padding = config.padding
+							$scope.colors = {on:config.onColor,off:config.offColor}						
 							pollInit()
 						}
 						var pollInit = function(){
@@ -438,18 +475,22 @@ module.exports = function (RED) {
 							var sci
 							var len = $scope.series.length
 							var target
+							//console.log("updateBars",$scope.data)
+
 							for (let i = 0; i < len; i++) {								
 								target = document.getElementById("scb_"+$scope.unique+"_"+i);
 								if(target){									
-									sci = target.getAttribute('class').indexOf('off')
-									if(sci == -1 && $scope.data[i].state == false){										
-										c = target.getAttribute('class') + ' off'												
-										target.setAttribute("class",  c);										
+									if($scope.data[i].color){
+										target.setAttribute("fill",  $scope.data[i].color);
 									}
-									else if(sci != -1 && $scope.data[i].state == true){
-										c = target.getAttribute('class').replace(' off','')																																			
-										target.setAttribute("class", c );			
-									}
+									else{										
+										if($scope.data[i].state == false){
+											target.setAttribute("fill",  $scope.colors.off);										
+										}
+										else {
+											target.setAttribute("fill",  $scope.colors.on);		
+										}
+									}									
 									target.setAttribute('height',$scope.data[i].height)					
 								}															
 							}
@@ -488,8 +529,9 @@ module.exports = function (RED) {
 										tl = 3
 									}
 									else{
-										tl = Math.ceil(Math.log(d + 1) / Math.LN10);
-									}																
+										tl = Math.ceil(Math.log(Math.abs(d) + 1) / Math.LN10);
+									}
+															
 									if(tl > 3){
 										d = parseFloat(d/1000).toFixed(1)+'k'
 									}
@@ -502,10 +544,25 @@ module.exports = function (RED) {
 							}							
 						}
 						var updateTitle = function(title){
-							console.log("updatetitle "+title)
+							//console.log("updatetitle "+title)
 							var target = document.getElementById("sc_label_"+$scope.unique);
 							if(target){
 								$(target).text(title)
+							}
+						}
+
+						var updateLimits = function(limits){
+							//console.log("updateLimits "+limits.min,limits.max)
+							var target = document.getElementById("sc_min_"+$scope.unique);
+							var v
+							if(target){
+								v = parseFloat(limits.min) == 0 ? '0' : parseFloat(limits.min).toFixed(1)
+								$(target).text("min: "+v)
+							}
+							var target = document.getElementById("sc_max_"+$scope.unique);
+							if(target){
+								v = parseFloat(limits.max) == 0 ? '0' : parseFloat(limits.max).toFixed(1)
+								$(target).text("max: "+v)
 							}
 						}
 
@@ -520,6 +577,9 @@ module.exports = function (RED) {
 							}
 							if(msg.payload){								
 								updateBars(msg.payload)
+							}
+							if(msg.limits){								
+								updateLimits(msg.limits)
 							}
 							if(msg.title){
 								updateTitle(msg.title)

@@ -52,8 +52,12 @@ SOFTWARE.
             colorText: {value:'#eeeeee'},
             fontLabel:{value:''},
             fontValue:{value:''},
-            fontSeries:{value:''}
+            fontSeries:{value:''},
+            minValue:{value: '', validate:function(value) { return value === '' || RED.validators.number(); }},
+            maxValue:{value: '', validate:function(value) { return value === '' || RED.validators.number(); }},
+            limitChoice:{value:true}
         },
+           
         inputs:1,
         outputs:0,
         icon: 'statechart.png',
@@ -71,9 +75,20 @@ SOFTWARE.
             if (this.showvalues === undefined) {
                 $("#node-input-showvalues").prop('checked', false);
             } 
+            if (this.limitChoice === undefined) {
+                $("#node-input-limitChoice").prop('checked', true);
+            } 
             if (this.series === undefined) {
                 this.series = '';
                 $('#node-input-series').val('');
+            }
+            if (this.minValue === undefined) {
+                this.minValue = '';
+                $('#node-input-minValue').val('');
+            }
+            if (this.maxValue === undefined) {
+                this.maxValue = '';
+                $('#node-input-maxValue').val('');
             }
             if (this.colorON === undefined) {
                 this.colorON = "#009933";
@@ -89,6 +104,14 @@ SOFTWARE.
                 $('#node-input-textoptions').val('default');
                 $('#node-input-fontcolor').hide();
             }
+            $('#node-input-limitChoice').change(function() {                
+                if (this.checked == true) {                                 
+                    $('#node-input-limitinput').hide(); 
+                }
+                else {                   
+                    $('#node-input-limitinput').show();                   
+                }
+            });
             $('#node-input-colorFromTheme').change(function() {                
                 if (this.checked == true) {                                 
                     $('#node-input-barcolors').hide(); 
@@ -140,7 +163,7 @@ SOFTWARE.
         }
     });
 </script>
-<script type='text/x-red' data-template-name='ui_statechart'>
+<script type='text/html' data-template-name='ui_statechart'>
     <div class='form-row' id='template-row-group'>
         <label for='node-input-group'><i class='fa fa-table'></i> Group</span></label>
         <input type='text' id='node-input-group'>
@@ -152,31 +175,44 @@ SOFTWARE.
         <button class='editor-button' id='node-input-size'></button>
     </div>      
 </br>
-    <div class='form-row' id='node-input-el-label'>
-        <label for='node-input-label'><i class='icon-tag'></i> Label</label>
-        <input type='text' id='node-input-label' placeholder='State chart'>
-    </div>
-    <div class='form-row' id='node-input-el-series'>
-        <label for='node-input-series'><i class='fa fa-cog'></i> Series</label>
-        <input type='text' id='node-input-series' placeholder='A,B,C,D'>
-    </div>
-    <div class='form-row' id='node-input-valuepresent'>
-        <label for='node-input-showvalues'><i class='fa fa-cog'></i> Values</span></label>
-        <input type="checkbox" id="node-input-showvalues" checked style="display:inline-block; width:auto; vertical-align:baseline; margin-right:5px;">Show values       
-    </div>
-</br>
-        
-    <div class='form-row' id='node-input-linecolor'>
-        <label for='node-input-colorFromTheme' style='padding-top:6px; padding-bottom:6px'><i class='fa fa-paint-brush'></i> Bar Colors</span></label>
-        <input type="checkbox" id="node-input-colorFromTheme" checked style="display:inline-block; width:auto; vertical-align:baseline; margin-right:5px;">Use theme color
-    </div>
-    <div class='form-row' id='node-input-barcolors'>
-            <label for='node-input-barcolors' style='padding-top:6px; padding-bottom:6px'><i class='fa fa-paint-brush'></i> State colors</span></label>
-            <span for='node-input-colorON' id='node-input-colorLineSpan' style='margin-left:20px;'>true</span>
-            <input type='color' class="series-color" id='node-input-colorON' style='width:80px'/>
-            <span for='node-input-colorOFF' id='node-input-colorLineSpan' style='margin-left:20px;'>false</span>
-            <input type='color' class="series-color" id='node-input-colorOFF' style='width:80px'/>
-        </div>    
+<div class='form-row' id='node-input-el-label'>
+    <label for='node-input-label'><i class='icon-tag'></i> Label</label>
+    <input type='text' id='node-input-label' placeholder='State chart'>
+</div>
+<div class='form-row' id='node-input-el-series'>
+    <label for='node-input-series'><i class='fa fa-cog'></i> Series</label>
+    <input type='text' id='node-input-series' placeholder='A,B,C,D'>
+</div>
+<div class='form-row' id='node-input-valuepresent'>
+    <label for='node-input-showvalues'><i class='fa fa-cog'></i> Values</span></label>
+    <input type="checkbox" id="node-input-showvalues" checked style="display:inline-block; width:auto; vertical-align:baseline; margin-right:5px;">Show values       
+</div>
+
+<div class='form-row' id='node-input-limitoption'>
+    <label for='node-input-limitChoice' style='padding-top:6px; padding-bottom:6px'><i class='fa fa-cog'></i> Limits</span></label>
+    <input type="checkbox" id="node-input-limitChoice" checked style="display:inline-block; width:auto; vertical-align:baseline; margin-right:5px;">Use dataset min & max
+</div>
+
+<div class='form-row' id='node-input-limitinput'>
+    <label for='node-input-limit-inputs'><i class='fa fa-cog'></i> Limits</label>
+    <span for='node-input-minValue'>Min</span>
+    <input type='text' id='node-input-minValue' style='width:80px' dir='' placeholder=''>
+    <span for='node-input-maxValue'>Max</span>
+    <input type='text' id='node-input-maxValue' style='width:80px' dir='' placeholder=''>
+</div>
+
+</br>        
+<div class='form-row' id='node-input-linecolor'>
+    <label for='node-input-colorFromTheme' style='padding-top:6px; padding-bottom:6px'><i class='fa fa-paint-brush'></i> Bar Colors</span></label>
+    <input type="checkbox" id="node-input-colorFromTheme" checked style="display:inline-block; width:auto; vertical-align:baseline; margin-right:5px;">Use theme color
+</div>
+<div class='form-row' id='node-input-barcolors'>
+        <label for='node-input-barcolors' style='padding-top:6px; padding-bottom:6px'><i class='fa fa-paint-brush'></i> State colors</span></label>
+        <span for='node-input-colorON' id='node-input-colorLineSpan' style='margin-left:20px;'>true</span>
+        <input type='color' class="series-color" id='node-input-colorON' style='width:80px'/>
+        <span for='node-input-colorOFF' id='node-input-colorLineSpan' style='margin-left:20px;'>false</span>
+        <input type='color' class="series-color" id='node-input-colorOFF' style='width:80px'/>
+    </div>    
 </br>        
     <div class='form-row'>
         <label for='node-input-textoptions'><i class='fa fa-font'></i> Text options</label>
@@ -209,7 +245,7 @@ SOFTWARE.
         <input type='text' id='node-input-name' placeholder='Name'>
     </div>
 </script>
-<script type='text/x-red' data-help-name='ui_statechart'>
+<script type='text/html' data-help-name='ui_statechart'>
     <h3>Description</h3>
     <p>Node-RED dashboard widget. Bar chart to visualize numeric values in relation, together with state represented by color.<p>
 </br>
@@ -224,6 +260,14 @@ SOFTWARE.
     Shortcut <code>24h</code> generates series without leading zeros - <code>0,1,2,...,22,23</code>. 
     Using shortcut adds option to turn on the highlight of bar represents current hour. 
     To do so, use syntax <code>24H|L</code>.
+
+    <h2>Limits</h2>
+    <p>By default the graph will be autoscaling so that it will adjust the y-axis to the range of the data.
+    You can change this behavior by explicitly setting the limits. 
+    To do this uncheck <code>Use dataset min & max</code> checkbox and specify custom limits. 
+    One or both limits can be specified. If only one limit is specified, the other will still autoscale.
+    The y-axis will then range at least from <code>Min</code> to <code>Max</code>. 
+    Autoscaling will still permit those boundaries to be stretched if the dataset exceeds the specified limits.
 
 
     <h2>Other configurable options</h2>        
